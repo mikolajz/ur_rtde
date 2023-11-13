@@ -59,7 +59,7 @@ pub struct FakeRawRTDEControl {
 impl FakeRawRTDEControl {
 
     /// Make the FakeRawRTDE repeatedly return the given robot output packet.
-    pub fn queue_repeating_output(&mut self, recipe_id: u8, data: &[RTDEData]) -> () {
+    pub fn queue_repeating_output(&mut self, recipe_id: u8, data: &[RTDEData]) {
         self.queue_output_worker(recipe_id, data, QueueItemMode::Repeat);
     }
 
@@ -67,11 +67,11 @@ impl FakeRawRTDEControl {
     /// 
     /// If it gets asked for another output packet, it will require another call to
     /// `queue_output` or `queue_repeating_output` to proceed.
-    pub fn queue_output(&mut self, recipe_id: u8, data: &[RTDEData]) -> () {
+    pub fn queue_output(&mut self, recipe_id: u8, data: &[RTDEData]) {
         self.queue_output_worker(recipe_id, data, QueueItemMode::OneTime);
     }
 
-    fn queue_output_worker(&mut self, recipe_id: u8, data: &[RTDEData], queue_item_mode: QueueItemMode) -> () {
+    fn queue_output_worker(&mut self, recipe_id: u8, data: &[RTDEData], queue_item_mode: QueueItemMode) {
         // Right now this check is disabled, as in some tests we need to queue a packet before the outputs are configured.
         //assert!((0..self.output_io_setups.len()).contains(&recipe_id.into()), "Recipe {} out of range", recipe_id);
 
@@ -205,7 +205,7 @@ impl RawRTDETrait for FakeRawRTDE {
                 return Ok(None);
             }
 
-            if let Some((index, item)) = control.queued_output_packets.iter().enumerate().filter(|(_, item)| item.recipe_id == io_setup.recipe_id).nth(0) {
+            if let Some((index, item)) = control.queued_output_packets.iter().enumerate().find(|(_, item)| item.recipe_id == io_setup.recipe_id) {
                 let data = match item.mode {
                     QueueItemMode::OneTime => control.queued_output_packets.remove(index).data,
                     QueueItemMode::Repeat => control.queued_output_packets[index].data.clone(),

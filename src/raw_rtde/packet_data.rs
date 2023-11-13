@@ -51,7 +51,7 @@ impl RTDEData {
     }
 
     /// Serialize the value as it's transmitted on the wire in RTDE.
-    pub fn serialize(&self, result: &mut Vec<u8>) -> () {
+    pub fn serialize(&self, result: &mut Vec<u8>) {
         match self {
             RTDEData::Int32(d) => result.write_i32::<BigEndian>(*d).unwrap(),
             RTDEData::Uint32(d) => result.write_u32::<BigEndian>(*d).unwrap(),
@@ -90,26 +90,26 @@ impl RTDEData {
             Ok(RTDEData::Uint32(input.read_u32::<BigEndian>().map_err(|_e| "Data packet too short")?))
         } else if data_type == discriminant(&RTDEData::Vector6D([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])) {
             let mut array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-            for i in 0..array.len() {
-                array[i] = input.read_f64::<BigEndian>().map_err(|_e| "Data packet too short")?;
+            for item in &mut array {
+                *item = input.read_f64::<BigEndian>().map_err(|_e| "Data packet too short")?;
             }
             Ok(RTDEData::Vector6D(array))
         } else if data_type == discriminant(&RTDEData::Vector3D([0.0, 0.0, 0.0])) {
             let mut array = [0.0, 0.0, 0.0];
-            for i in 0..array.len() {
-                array[i] = input.read_f64::<BigEndian>().map_err(|_e| "Data packet too short")?;
+            for item in &mut array {
+                *item = input.read_f64::<BigEndian>().map_err(|_e| "Data packet too short")?;
             }
             Ok(RTDEData::Vector3D(array))
         } else if data_type == discriminant(&RTDEData::Vector6Int32([0, 0, 0, 0, 0, 0])) {
             let mut array = [0, 0, 0, 0, 0, 0];
-            for i in 0..array.len() {
-                array[i] = input.read_i32::<BigEndian>().map_err(|_e| "Data packet too short")?;
+            for item in &mut array {
+                *item = input.read_i32::<BigEndian>().map_err(|_e| "Data packet too short")?;
             }
             Ok(RTDEData::Vector6Int32(array))
         } else if data_type == discriminant(&RTDEData::Vector3Int32([0, 0, 0])) {
             let mut array = [0, 0, 0];
-            for i in 0..array.len() {
-                array[i] = input.read_i32::<BigEndian>().map_err(|_e| "Data packet too short")?;
+            for item in &mut array {
+                *item = input.read_i32::<BigEndian>().map_err(|_e| "Data packet too short")?;
             }
             Ok(RTDEData::Vector3Int32(array))
         } else if data_type == discriminant(&RTDEData::Double(0.0)) {

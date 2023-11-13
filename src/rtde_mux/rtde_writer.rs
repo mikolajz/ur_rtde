@@ -15,7 +15,7 @@ impl RTDEWriterSharedData {
         rtde_thread: &Arc<dyn RTDEThreadTrait>,
         initial_values: &BTreeMap<String, RTDEData>,
     ) -> Arc<Mutex<RTDEWriterSharedData>> {
-        return Arc::new(
+        Arc::new(
             Mutex::new(
                 RTDEWriterSharedData{
                     rtde_thread: rtde_thread.clone(),
@@ -27,7 +27,7 @@ impl RTDEWriterSharedData {
 
     pub(crate) fn send_initial_values(&self) -> Result<(), String> {
         let values = self.write_buffer.values();
-        if values.len() > 0 {
+        if !values.is_empty() {
             self.rtde_thread.send(&values)
         } else {
             Ok(())

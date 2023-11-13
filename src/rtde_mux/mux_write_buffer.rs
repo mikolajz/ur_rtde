@@ -18,9 +18,9 @@ impl MuxWriteBuffer {
     pub(crate) fn update(&mut self, names: &[String], values: &[RTDEData]) -> Result<(), String> {
         for (name, value) in names.iter().zip(values) {
             // TODO(mikolajz): can we achieve it without cloning the String and without modifying the state on invalid input?
-            let previous_value = self.current_values.insert(name.clone(), value.clone()).ok_or(String::from(format!("Unsupported name {name}")))?;
+            let previous_value = self.current_values.insert(name.clone(), value.clone()).ok_or_else(|| format!("Unsupported name {name}"))?;
             if discriminant(&previous_value) != discriminant(value) {
-                return Err(String::from(format!("Value {name} changed type from {previous_value:?} to {value:?}")));
+                return Err(format!("Value {name} changed type from {previous_value:?} to {value:?}"));
             }
         }
         Ok(())

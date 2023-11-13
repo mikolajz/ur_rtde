@@ -51,7 +51,7 @@ impl RTDEThreadTrait for FakeRTDEThread {
 
         let packet = Packet{
             packet_id: PacketId(0),
-            payload: data.iter().cloned().collect(),
+            payload: data.to_vec(),
         };
 
         self.control.borrow_mut().sent_packets.push(packet);

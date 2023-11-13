@@ -88,7 +88,7 @@ impl<T> RTDEThread<T>
 
         let join_handle = Self::start_thread(
             raw_rtde,
-            input_io_setup.clone(),
+            input_io_setup,
             output_io_setup,
             shared_state_lock.clone(),
             condition.clone(),

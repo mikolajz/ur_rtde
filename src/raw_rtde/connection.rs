@@ -175,7 +175,7 @@ impl<T: Read + Write + event::Source> GenericRawRTDE<T> {
     }
 
     fn encode_configure_inputs_request<U: AsRef<str>>(variables: &[U]) -> Result<Vec<u8>, String> {
-        let variables = variables.into_iter().map(|v| v.as_ref()).collect::<Vec<&str>>();
+        let variables = variables.iter().map(|v| v.as_ref()).collect::<Vec<&str>>();
         if !variables.iter().all(|v| !v.contains(',')) {
             return Err(format!("Comma can't be part of variable name in {:?}", variables));
         }
@@ -185,7 +185,7 @@ impl<T: Read + Write + event::Source> GenericRawRTDE<T> {
     }
 
     fn encode_configure_outputs_request<U: AsRef<str>>(frequency: f64, variables: &[U]) -> Result<Vec<u8>, String> {
-        let variables = variables.into_iter().map(|v| v.as_ref()).collect::<Vec<&str>>();
+        let variables = variables.iter().map(|v| v.as_ref()).collect::<Vec<&str>>();
         if !variables.iter().all(|v| !v.contains(',')) {
             return Err(format!("Comma can't be part of variable name in {:?}", variables));
         }
@@ -202,12 +202,12 @@ impl<T: Read + Write + event::Source> GenericRawRTDE<T> {
     }
 
     fn decode_configure_io_reply<U: AsRef<str>>(payload: Vec<u8>, variables: &[U]) -> Result<IoSetup, String>{
-        let variables = variables.into_iter().map(|v| v.as_ref()).collect::<Vec<&str>>();
+        let variables = variables.iter().map(|v| v.as_ref()).collect::<Vec<&str>>();
         let mut rdr = Cursor::new(payload);
-        let recipe_id: u8 = rdr.read_u8().map_err(|_e| "Inputs setup reply too short")?.into();
+        let recipe_id: u8 = rdr.read_u8().map_err(|_e| "Inputs setup reply too short")?;
         let payload = rdr.into_inner();
         let string = String::from_utf8(payload[1..].to_vec()).map_err(|_e| format!("Inputs reply contains non-UTF8 chars: {:?}", &payload[1..]))?;
-        let type_names: Vec<String> = string.split(",").map(|s| String::from(s)).collect();
+        let type_names: Vec<String> = string.split(',').map(String::from).collect();
 
         if let Some(offender) = type_names.iter().position(|t| t == "NOT_FOUND") {
             return Err(format!("Variable {} not found", variables[offender]));
@@ -216,7 +216,7 @@ impl<T: Read + Write + event::Source> GenericRawRTDE<T> {
             return Err(format!("Variable {} is already in use by another connection", variables[offender]));
         }
 
-        let types: Vec<Discriminant<RTDEData>> = type_names.into_iter().map(|n| Self::map_type_name_to_discriminant(&n)).collect::<Result<Vec<_>,_>>()?;
+        let types: Vec<Discriminant<RTDEData>> = type_names.iter().map(|n| Self::map_type_name_to_discriminant(n)).collect::<Result<Vec<_>,_>>()?;
 
         Ok(IoSetup {
             recipe_id,

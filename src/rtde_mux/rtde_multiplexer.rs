@@ -48,7 +48,7 @@ impl<T> RTDEMultiplexedConnectionBuilder<T>
             raw_rtde,
             read_variables: BTreeSet::new(),
             write_variables: BTreeMap::new(),
-            read_frequency: read_frequency,
+            read_frequency,
             cookie: 0,
         };
         result.cookie = &result.read_frequency as *const f64 as usize;  // Best effort unique ID of this multiplexer.
@@ -84,7 +84,7 @@ impl<T> RTDEMultiplexedConnectionBuilder<T>
             if let Occupied(oe) = entry {
                 let current_entry = oe.get();
                 if *current_entry != value {
-                    return Err(String::from(format!("Variable {var} initialized again to a differnent value ({value:?} vs {current_entry:?})")));
+                    return Err(format!("Variable {var} initialized again to a differnent value ({value:?} vs {current_entry:?})"));
                 }
             } else if let Vacant(ve) = entry {
                 ve.insert(value);
@@ -145,7 +145,7 @@ impl RTDEMultiplexedConnection {
     /// See `RTDEMultiplexedConnectionBuilder.add_read_variable_set` for details.
     pub fn get_reader<U: RTDEReadVariableSet>(&self, promise: RTDEReaderPromise<U>) -> Result<RTDEReader<U>, String> {
         if promise.cookie != self.cookie {
-            return Err(String::from(format!("The promise object is from a different RTDEMultiplexedConnection")));
+            return Err("The promise object is from a different RTDEMultiplexedConnection".to_string());
         }
 
         RTDEReader::new(
@@ -159,7 +159,7 @@ impl RTDEMultiplexedConnection {
     /// See `RTDEMultiplexedConnectionBuilder.add_write_variable_set` for details.
     pub fn get_writer<U: RTDEWriteVariableSet>(&self, promise: RTDEWriterPromise<U>) -> Result<RTDEWriter<U>, String> {
         if promise.cookie != self.cookie {
-            return Err(String::from(format!("The promise object is from a different RTDEMultiplexedConnection")));
+            return Err("The promise object is from a different RTDEMultiplexedConnection".to_string());
         }
 
         Ok(RTDEWriter::new(&self.writer_shared_data))
@@ -171,12 +171,12 @@ impl RTDEMultiplexedConnection {
     pub fn disconnect(self) -> Result<(), String> {
         let writers_left = Arc::strong_count(&self.writer_shared_data) - 1;  // 1 reference from RTDEMultiplexedConnection.
         if writers_left > 0 {
-            return Err(String::from(format!("Some writers are still active (count {writers_left}")))
+            return Err(format!("Some writers are still active (count {writers_left}"));
         }
 
         let readers_left = Arc::strong_count(&self.rtde_thread) - 2;  // 2 references from RTDEMultiplexedConnection.
         if readers_left > 0 {
-            return Err(String::from(format!("Some readers are still active (count {readers_left}")))
+            return Err(format!("Some readers are still active (count {readers_left}"));
         }
 
         let mut rtde_thread = self.rtde_thread.clone();
@@ -185,7 +185,7 @@ impl RTDEMultiplexedConnection {
         if let Some(my_thread) = Arc::get_mut(&mut rtde_thread) {
             my_thread.stop()?;
         } else {
-            return Err(String::from(format!("Some references to RTDE thread are left - cannot stop it.")));
+            return Err("Some references to RTDE thread are left - cannot stop it.".to_string());
         }
 
         Ok(())

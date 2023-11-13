@@ -22,7 +22,7 @@ impl<U: RTDEReadVariableSet> RTDEReader<U>
     {
         let var_names = U::get_variables();
         let var_indices: Vec<usize> = var_names.iter()
-            .map(|name| var_names_to_index_in_thread_output.get(name).map(|e| *e).ok_or(format!("Variable {} not in packet", name)))
+            .map(|name| var_names_to_index_in_thread_output.get(name).copied().ok_or(format!("Variable {} not in packet", name)))
             .collect::<Result<_, _>>()?;
 
         Ok(RTDEReader {
