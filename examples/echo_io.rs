@@ -1,12 +1,14 @@
 //! Example of usage of RTDEMultiplexedConnection.
-//! 
+//!
 //! Sets the Standard Outputs 4-7 to match the Standard Output 0-3. One can toggle the
 //! values in pendant and after 5 toggles, the program finishes.
 
 use std::time::Instant;
 
 use ur_rtde::raw_rtde::{GenericRawRTDE, RTDEData};
-use ur_rtde::rtde_mux::{RTDEMultiplexedConnectionBuilder, RTDEReadVariableSet, RTDEWriteVariableSet};
+use ur_rtde::rtde_mux::{
+    RTDEMultiplexedConnectionBuilder, RTDEReadVariableSet, RTDEWriteVariableSet,
+};
 
 #[derive(Debug)]
 struct DigitalOutputVars {
@@ -15,9 +17,17 @@ struct DigitalOutputVars {
 }
 
 impl RTDEWriteVariableSet for DigitalOutputVars {
-    fn get_variables() -> Vec<String> { vec![String::from("standard_digital_output"), String::from("standard_digital_output_mask")]}
+    fn get_variables() -> Vec<String> {
+        vec![
+            String::from("standard_digital_output"),
+            String::from("standard_digital_output_mask"),
+        ]
+    }
     fn convert_into_rtde_data(&self) -> Vec<RTDEData> {
-        vec![RTDEData::Uint8(self.standard_digital_output), RTDEData::Uint8(self.standard_digital_output_mask)]
+        vec![
+            RTDEData::Uint8(self.standard_digital_output),
+            RTDEData::Uint8(self.standard_digital_output_mask),
+        ]
     }
 }
 
@@ -27,23 +37,24 @@ struct DigitalInputVars {
 }
 
 impl RTDEReadVariableSet for DigitalInputVars {
-    fn get_variables() -> Vec<String> { vec![String::from("actual_digital_output_bits")]}
+    fn get_variables() -> Vec<String> {
+        vec![String::from("actual_digital_output_bits")]
+    }
     fn fill_from_rtde_data(data: &[RTDEData]) -> Result<DigitalInputVars, String> {
         if data.len() != 1 {
             return Err(format!("Got {} elements instead of 1", data.len()));
         }
 
-        return Ok(DigitalInputVars{
+        return Ok(DigitalInputVars {
             actual_digital_output_bits: {
                 match data[0] {
                     RTDEData::Uint64(d) => Ok(d),
                     _ => Err(format!("Wrong type for field 0: {:?}", data[0])),
                 }
             }?,
-        })
+        });
     }
 }
-
 
 pub fn run_rtde_echo() {
     const TOGGLE_LIMIT: i32 = 5;
@@ -51,12 +62,14 @@ pub fn run_rtde_echo() {
     let rtde = GenericRawRTDE::connect("127.0.0.1:30004".parse().unwrap()).unwrap();
     let mut mux_builder = RTDEMultiplexedConnectionBuilder::new(rtde, 500.0);
 
-    let mut outputs = DigitalOutputVars{
+    let mut outputs = DigitalOutputVars {
         standard_digital_output: 0,
-        standard_digital_output_mask: 0xf0,  // Will modify only the 4 higher bits.
+        standard_digital_output_mask: 0xf0, // Will modify only the 4 higher bits.
     };
 
-    let io_reader_promise = mux_builder.add_read_variable_set::<DigitalInputVars>().unwrap();
+    let io_reader_promise = mux_builder
+        .add_read_variable_set::<DigitalInputVars>()
+        .unwrap();
     let io_writer_promise = mux_builder.add_write_variable_set(&outputs).unwrap();
 
     let connection = mux_builder.connect().unwrap();
@@ -93,7 +106,6 @@ pub fn run_rtde_echo() {
     let pps = num_packets as f32 / runtime;
     println!("Received {num_packets} packets in {runtime:.1} ({pps:.1} packets/sec).");
 }
-
 
 fn main() {
     env_logger::init();

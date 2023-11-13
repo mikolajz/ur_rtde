@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::raw_rtde::RTDEData;
-use crate::rtde_thread::{RTDEThreadTrait, Packet, PacketId};
+use crate::rtde_thread::{Packet, PacketId, RTDEThreadTrait};
 
 /// Controls the behaviour of a `FakeRTDEThread` and allow to query how its used.
 pub struct FakeRTDEThreadControl {
@@ -11,7 +11,7 @@ pub struct FakeRTDEThreadControl {
     /// Whether the user of FakeRTDEThread started the thread.
     pub running: bool,
     // The packet that the next call to `get_latest_packet` will return.
-    pub packet_to_receive: Option<Packet>,    
+    pub packet_to_receive: Option<Packet>,
 }
 
 /// A fake RTDEThread. Meant for unit tests.
@@ -21,16 +21,17 @@ pub struct FakeRTDEThread {
 
 impl FakeRTDEThread {
     pub fn new() -> (FakeRTDEThread, Rc<RefCell<FakeRTDEThreadControl>>) {
-        let control = Rc::new(
-            RefCell::new(
-                FakeRTDEThreadControl{
-                    sent_packets: vec![],
-                    running: true,
-                    packet_to_receive: None,
-                }
-            )
-        );
-        (FakeRTDEThread{control: control.clone()}, control)
+        let control = Rc::new(RefCell::new(FakeRTDEThreadControl {
+            sent_packets: vec![],
+            running: true,
+            packet_to_receive: None,
+        }));
+        (
+            FakeRTDEThread {
+                control: control.clone(),
+            },
+            control,
+        )
     }
 }
 
@@ -49,7 +50,7 @@ impl RTDEThreadTrait for FakeRTDEThread {
             return Err(String::from("Trying to use a stopped thread."));
         }
 
-        let packet = Packet{
+        let packet = Packet {
             packet_id: PacketId(0),
             payload: data.to_vec(),
         };
@@ -61,7 +62,9 @@ impl RTDEThreadTrait for FakeRTDEThread {
     fn get_latest_packet(&self, _previous_id: &Option<PacketId>) -> Result<Packet, String> {
         match &self.control.borrow().packet_to_receive {
             Some(packet) => Ok(packet.clone()),
-            None => Err(String::from("No packet to receive configured in FakeRTDEThread")),
+            None => Err(String::from(
+                "No packet to receive configured in FakeRTDEThread",
+            )),
         }
     }
 }

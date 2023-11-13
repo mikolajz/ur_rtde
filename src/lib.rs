@@ -10,12 +10,12 @@ pub mod raw_rtde {
 
 pub mod rtde_thread {
     mod fake_rtde_thread;
-    mod rtde_thread;
     mod packet;
+    mod rtde_thread;
 
     pub use fake_rtde_thread::*;
-    pub use rtde_thread::*;
     pub use packet::*;
+    pub use rtde_thread::*;
 }
 
 pub mod rtde_mux {
